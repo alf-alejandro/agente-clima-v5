@@ -32,8 +32,8 @@ MAX_POSITIONS     = int(os.environ.get("MAX_POSITIONS", 20))
 
 # Position sizing — 5%-10% de capital_disponible, proporcional al YES price
 # YES=0.22 → 5% | YES=0.27 → 10%
-POSITION_SIZE_MIN = float(os.environ.get("POSITION_SIZE_MIN", 0.05))
-POSITION_SIZE_MAX = float(os.environ.get("POSITION_SIZE_MAX", 0.10))
+POSITION_SIZE_MIN = float(os.environ.get("POSITION_SIZE_MIN", 0.022))
+POSITION_SIZE_MAX = float(os.environ.get("POSITION_SIZE_MAX", 0.027))
 
 # Price update thread
 PRICE_UPDATE_INTERVAL = int(os.environ.get("PRICE_UPDATE_INTERVAL", 10))
