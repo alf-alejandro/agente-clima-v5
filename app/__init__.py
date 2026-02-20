@@ -2,6 +2,7 @@ import logging
 from flask import Flask
 
 from app.config import INITIAL_CAPITAL, AUTO_START
+from app import db
 from app.portfolio import AutoPortfolio
 from app.trend_tracker import TrendTracker
 from app.bot import BotRunner
@@ -16,7 +17,9 @@ logging.basicConfig(
 def create_app():
     app = Flask(__name__)
 
+    db.init_db()
     portfolio = AutoPortfolio(INITIAL_CAPITAL)
+    portfolio.load_state()
     tracker   = TrendTracker()
     bot       = BotRunner(portfolio, tracker)
 
