@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agente Clima V5 — Momentum YES</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background: #0f172a; }
+        .card { background: #1e293b; border: 1px solid #334155; }
+        .pulse-dot { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        td.q   { min-width: 220px; word-break: break-word; white-space: normal; line-height: 1.4; }
+        td.num { white-space: nowrap; }
+        td.res { min-width: 180px; word-break: break-word; white-space: normal; line-height: 1.4; font-size: 0.75rem; color: #94a3b8; }
+    </style>
+</head>
+<body class="text-gray-200 min-h-screen">
+
+    <!-- Header -->
+    <header class="border-b border-gray-700 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-white">Agente Clima <span class="text-violet-400 text-lg font-normal">V5</span></h1>
+                <p class="text-sm text-gray-400">Momentum YES — espejo de V2 · Polymarket Weather</p>
+            </div>
+            <div class="flex items-center gap-3 flex-wrap">
+                <span id="bot-status-badge" class="flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-red-900/50 text-red-300">
+                    <span id="status-dot" class="w-2 h-2 rounded-full bg-red-400"></span>
+                    <span id="status-text">Detenido</span>
+                </span>
+                <button id="btn-start" onclick="startBot()" class="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-sm font-medium transition">
+                    Iniciar Bot
+                </button>
+                <button id="btn-stop" onclick="stopBot()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition hidden">
+                    Detener Bot
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-6 space-y-6">
+
+        <!-- Metrics row -->
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+            <div class="card rounded-xl p-4">
+                <p class="text-xs text-gray-400 uppercase tracking-wide">Capital Total</p>
+                <p id="m-capital" class="text-xl font-bold text-white mt-1">$0.00</p>
+            </div>
+            <div class="card rounded-xl p-4">
+                <p class="text-xs text-gray-400 uppercase tracking-wide">Disponible</p>
+                <p id="m-disponible" class="text-xl font-bold text-white mt-1">$0.00</p>
+            </div>
+            <div class="card rounded-xl p-4">
+                <p class="text-xs text-gray-400 uppercase tracking-wide">P&L</p>
+                <p id="m-pnl" class="text-xl font-bold mt-1">$0.00</p>
+            </div>
+            <div class="card rounded-xl p-4">
+                <p class="text-xs text-gray-400 uppercase tracking-wide">ROI</p>
+                <p id="m-roi" class="text-xl font-bold mt-1">0.00%</p>
+            </div>
+            <div class="card rounded-xl p-4">
+                <p class="text-xs text-gray-400 uppercase tracking-wide">G / P</p>
+                <p id="m-wl" class="text-xl font-bold text-white mt-1">0 / 0</p>
+            </div>
+            <div class="card rounded-xl p-4">
+                <p class="text-xs text-gray-400 uppercase tracking-wide">Mercados</p>
+                <p id="m-tracked" class="text-xl font-bold text-violet-400 mt-1">0</p>
+            </div>
+            <div class="card rounded-xl p-4">
+                <p class="text-xs text-gray-400 uppercase tracking-wide">Con Trend</p>
+                <p id="m-trend" class="text-xl font-bold text-emerald-400 mt-1">0</p>
+            </div>
+            <div class="card rounded-xl p-4">
+                <p class="text-xs text-gray-400 uppercase tracking-wide">Escaneos</p>
+                <p id="m-scans" class="text-xl font-bold text-white mt-1">0</p>
+            </div>
+        </div>
+
+        <!-- Strategy info banner -->
+        <div class="card rounded-xl p-4 border-violet-800/30">
+            <h2 class="text-sm font-semibold text-gray-300 mb-2">Estrategia V5 — Momentum YES (espejo de V2)</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Entrada YES</p>
+                    <p class="text-violet-300 font-mono font-bold mt-0.5">22–27¢</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Filtro Entrada</p>
+                    <p class="text-blue-300 font-mono font-bold mt-0.5">Uptrend YES ó ≥4 obs</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Stop Loss</p>
+                    <p class="text-red-300 font-mono font-bold mt-0.5">YES cae –5¢ desde entrada</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Sizing</p>
+                    <p class="text-purple-300 font-mono font-bold mt-0.5">5–10% capital</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-3 gap-4 text-sm mt-3 pt-3 border-t border-gray-700">
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Salida 1</p>
+                    <p class="text-emerald-300 font-mono font-bold mt-0.5">YES ≥ 31¢ → vender 50%</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Salida 2</p>
+                    <p class="text-emerald-300 font-mono font-bold mt-0.5">YES ≥ 37¢ → vender 50%</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Salida 3 / WON</p>
+                    <p class="text-emerald-300 font-mono font-bold mt-0.5">YES ≥ 43¢ ó YES → 99¢</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="card rounded-xl p-4">
+            <h2 class="text-sm font-semibold text-gray-300 mb-3">Capital en el Tiempo</h2>
+            <canvas id="capitalChart" height="80"></canvas>
+        </div>
+
+        <!-- Tables row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- Open positions -->
+            <div class="card rounded-xl p-4 overflow-x-auto">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-sm font-semibold text-gray-300">Posiciones Abiertas (YES)</h2>
+                    <span id="price-badge" class="flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-full bg-gray-700 text-gray-400">
+                        <span id="price-badge-dot" class="w-1.5 h-1.5 rounded-full bg-gray-500"></span>
+                        <span id="price-badge-txt">Precios: —</span>
+                    </span>
+                </div>
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-gray-500 border-b border-gray-700">
+                            <th class="pb-2 pr-3">Mercado</th>
+                            <th class="pb-2 pr-3 whitespace-nowrap">Entrada</th>
+                            <th class="pb-2 pr-3 whitespace-nowrap">Actual</th>
+                            <th class="pb-2 pr-3 whitespace-nowrap">Stage</th>
+                            <th class="pb-2 pr-3 whitespace-nowrap">$</th>
+                            <th class="pb-2 whitespace-nowrap">P&L</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-open"></tbody>
+                </table>
+                <p id="no-open" class="text-gray-500 text-sm mt-2 hidden">Sin posiciones abiertas</p>
+            </div>
+
+            <!-- Opportunities -->
+            <div class="card rounded-xl p-4 overflow-x-auto">
+                <h2 class="text-sm font-semibold text-gray-300 mb-3">Oportunidades YES (último escaneo)</h2>
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-gray-500 border-b border-gray-700">
+                            <th class="pb-2 pr-3">Mercado</th>
+                            <th class="pb-2 pr-3 whitespace-nowrap">YES</th>
+                            <th class="pb-2 pr-3 whitespace-nowrap">Obs</th>
+                            <th class="pb-2 pr-3 whitespace-nowrap">Trend</th>
+                            <th class="pb-2 whitespace-nowrap">Vol</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-opps"></tbody>
+                </table>
+                <p id="no-opps" class="text-gray-500 text-sm mt-2 hidden">Sin oportunidades</p>
+            </div>
+        </div>
+
+        <!-- Closed trades -->
+        <div class="card rounded-xl p-4 overflow-x-auto">
+            <h2 class="text-sm font-semibold text-gray-300 mb-3">Trades Cerrados</h2>
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-left text-gray-500 border-b border-gray-700">
+                        <th class="pb-2 pr-3">Mercado</th>
+                        <th class="pb-2 pr-3 whitespace-nowrap">Entrada YES</th>
+                        <th class="pb-2 pr-3 whitespace-nowrap">Invertido</th>
+                        <th class="pb-2 pr-3 whitespace-nowrap">P&L</th>
+                        <th class="pb-2 pr-3 whitespace-nowrap">Estado</th>
+                        <th class="pb-2 pr-3">Resolución</th>
+                        <th class="pb-2 whitespace-nowrap">Cerrado</th>
+                    </tr>
+                </thead>
+                <tbody id="table-closed"></tbody>
+            </table>
+            <p id="no-closed" class="text-gray-500 text-sm mt-2 hidden">Sin trades cerrados</p>
+        </div>
+
+        <!-- Insights -->
+        <div id="insights-panel" class="card rounded-xl p-4 hidden">
+            <h2 class="text-sm font-semibold text-gray-300 mb-4">Insights
+                <span id="insights-trades" class="ml-2 text-gray-500 font-normal"></span>
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-2">Win rate por ciudad</p>
+                    <div id="insights-city" class="space-y-1"></div>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-2">Win rate por hora UTC</p>
+                    <div id="insights-hour" class="space-y-1"></div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="text-center text-gray-600 text-xs py-4">
+        Agente Clima V5 &mdash; Momentum YES / Espejo de V2
+    </footer>
+
+    <script src="/static/dashboard.js"></script>
+</body>
+</html>
