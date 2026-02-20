@@ -55,7 +55,7 @@ REGION_MAP = {
 # Capital
 INITIAL_CAPITAL = float(os.environ.get("INITIAL_CAPITAL", 100.0))
 AUTO_MODE       = os.environ.get("AUTO_MODE", "true").lower() == "true"
-AUTO_START      = os.environ.get("AUTO_START", "false").lower() == "true"
+AUTO_START      = os.environ.get("AUTO_START", "true").lower() == "true"
 
 # API
 GAMMA = os.environ.get("GAMMA_API", "https://gamma-api.polymarket.com")
